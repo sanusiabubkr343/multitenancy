@@ -2,60 +2,40 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
+  postgres-master:
+    image: postgres:15
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: postgres
+      POSTGRES_DB: master_db
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - app_network
+      - postgres_master_data:/var/lib/postgresql/data
 
-  app:
+  postgres-tenant:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_tenant_data:/var/lib/postgresql/data
+
+  api:
     build: .
     ports:
       - "8000:8000"
     environment:
-      - TENANT_DATABASE_URL=postgresql://postgres:password@postgres:5432/tenant_db
-      - DEBUG=true
+      MASTER_DATABASE_URL: postgresql://postgres:password@postgres-master:5432/master_db
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres-master
+      - postgres-tenant
     volumes:
-      - ./app:/app/app
       - ./migrations:/app/migrations
-      - ./logs:/app/logs
-    command: >
-      sh -c "alembic upgrade head &&
-             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
-    networks:
-      - app_network
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
-    depends_on:
-      - postgres
-    networks:
-      - app_network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
-  postgres_data:
-
-networks:
-  app_network:
-    driver: bridge
+  postgres_master_data:
+  postgres_tenant_data:
