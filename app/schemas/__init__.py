@@ -6,11 +6,15 @@ from app.schemas.tenant_schemas import (
     TenantResponse,
     TenantListResponse
 )
-from app.schemas.user_schemas import (
-    UserBase,
-    UserCreate,
-    UserLogin,
-    UserResponse,
-    Token,
-    TokenData
+from app.schemas.migration_schemas import (
+    MigrationRequest,
+    MigrationCreateRequest,
+    MigrationResponse,
+    TenantMigrationResponse,
+    TenantVersionResponse
+)
+from app.schemas.product_schemas import (
+    ProductBase,
+    ProductCreate,
+    ProductResponse
 )

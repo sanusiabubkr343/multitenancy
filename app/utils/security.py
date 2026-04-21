@@ -15,7 +15,10 @@ from app.schemas.user_schemas import TokenData
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # OAuth2 scheme
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/api/auth/login",
+    scheme_name="BearerAuth"  # Match the name used/expected in Swagger
+)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

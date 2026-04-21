@@ -1,43 +1,21 @@
 # app/routers/tenant_data.py
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
-from typing import List, Any
-from pydantic import BaseModel
-from datetime import datetime
+from typing import List, Any, Optional
 from app.dependencies.tenant_db import get_tenant_db
 from app.models.tenant_models import Product
 from app.utils.security import get_current_active_user
 from app.models.master_models import User as MasterUser
+from app.schemas.product_schemas import ProductCreate, ProductResponse
 
 router = APIRouter()
-
-
-class ProductCreate(BaseModel):
-    name: str
-    description: str = None
-    price: float
-    stock_quantity: int = 0
-
-
-class ProductResponse(BaseModel):
-    id: int
-    name: str
-    description: str = None
-    price: float
-    stock_quantity: int
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
-
 
 
 @router.post("/products", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
 async def create_product(
         product: ProductCreate,
         tenant_db: Session = Depends(get_tenant_db),
-        current_user: MasterUser = Depends(get_current_active_user)
+        current_user = Depends(get_current_active_user)
 ) -> Any:
     """Create a product in the current tenant"""
     db_product = Product(**product.dict())
@@ -52,7 +30,7 @@ async def list_products(
         skip: int = 0,
         limit: int = 100,
         tenant_db: Session = Depends(get_tenant_db),
-        current_user: MasterUser = Depends(get_current_active_user)
+        current_user = Depends(get_current_active_user)
 ) -> Any:
     """List all products in the current tenant"""
     products = tenant_db.query(Product).offset(skip).limit(limit).all()
@@ -63,7 +41,7 @@ async def list_products(
 async def get_product(
         product_id: int,
         tenant_db: Session = Depends(get_tenant_db),
-        current_user: MasterUser = Depends(get_current_active_user)
+        current_user = Depends(get_current_active_user)
 ) -> Any:
     """Get a specific product by ID"""
     product = tenant_db.query(Product).filter(Product.id == product_id).first()
@@ -77,7 +55,7 @@ async def update_product(
         product_id: int,
         product_update: ProductCreate,
         tenant_db: Session = Depends(get_tenant_db),
-        current_user: MasterUser = Depends(get_current_active_user)
+        current_user = Depends(get_current_active_user)
 ) -> Any:
     """Update a product"""
     product = tenant_db.query(Product).filter(Product.id == product_id).first()
@@ -96,7 +74,7 @@ async def update_product(
 async def delete_product(
         product_id: int,
         tenant_db: Session = Depends(get_tenant_db),
-        current_user: MasterUser = Depends(get_current_active_user)
+        current_user = Depends(get_current_active_user)
 ) -> dict:
     """Delete a product"""
     product = tenant_db.query(Product).filter(Product.id == product_id).first()

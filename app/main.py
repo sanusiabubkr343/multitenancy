@@ -74,11 +74,11 @@ app.include_router(
     prefix="/api/migrations",
     tags=["Migration Management"]
 )
-# app.include_router(
-#     tenant_data.router,
-#     prefix="/api/tenant",
-#     tags=["Tenant Data Operations"]
-# )
+app.include_router(
+    tenant_data.router,
+    prefix="/api/tenant",
+    tags=["Tenant Data Operations"]
+)
 
 
 # Custom OpenAPI schema to add security schemes
@@ -95,26 +95,12 @@ def custom_openapi():
 
     # Add security scheme
     openapi_schema["components"] = openapi_schema.get("components", {})
-    openapi_schema["components"]["securitySchemes"] = {
-        "BearerAuth": {
-            "type": "http",
-            "scheme": "bearer",
-            "bearerFormat": "JWT",
-            "description": "Enter your JWT token"
-        },
-        "TenantAuth": {
-            "type": "apiKey",
-            "in": "header",
-            "name": "X-Tenant-ID",
-            "description": "Enter tenant ID (1, 2, 3, etc.)"
-        }
-    }
-
-    # Apply security globally
-    openapi_schema["security"] = [
-        {"BearerAuth": []},
-        {"TenantAuth": []}
-    ]
+    # Note: BearerAuth is already added by OAuth2PasswordBearer in app/utils/security.py
+    # TenantAuth is already added by APIKeyHeader in app/dependencies/tenant_db.py
+    
+    # Remove global security requirement to allow public endpoints like login/register
+    if "security" in openapi_schema:
+        del openapi_schema["security"]
 
     app.openapi_schema = openapi_schema
     return app.openapi_schema
@@ -199,3 +185,8 @@ async def add_process_time_header(request: Request, call_next):
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
     return response
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

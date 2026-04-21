@@ -1,24 +1,25 @@
-# requirements.txt - Complete with all dependencies
-
-# Core Framework (with all extras)
-fastapi[all]==0.104.1
-pydantic[email]==2.5.0
-pydantic-settings==2.1.0
-
-# Database
-sqlalchemy==2.0.23
-alembic==1.12.1
-psycopg2-binary==2.9.9
-
-# Authentication & Security
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-
-# Server
-uvicorn[standard]==0.24.0
-gunicorn==21.2.0
-watchfiles==0.21.0
-
-# Environment & Utilities
-python-dotenv==1.0.0
-email-validator==2.1.0
+fastapi==0.115.14
+alembic==1.13.1
+celery==5.4.0
+django-celery-beat>=2.5.0
+python-dotenv==1.0.1
+SQLAlchemy==2.0.27
+pydantic-settings==2.9.1
+redis==6.1.0
+psycopg2-binary==2.9.10
+uvicorn==0.27.1
+email_validator==2.1.1
+PyJWT==2.10.1
+itsdangerous==2.2.0
+passlib==1.7.4
+cloudinary
+python-multipart
+email-validator
+jinja2
+phonenumbers
+email_validator 
+tzlocal
+pandas
+openpyxl
+requests
+python-jose[cryptography]

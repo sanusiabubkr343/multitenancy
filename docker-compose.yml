@@ -33,7 +33,7 @@ services:
       - postgres-master
       - postgres-tenant
     volumes:
-      - ./migrations:/app/migrations
+      - .:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
