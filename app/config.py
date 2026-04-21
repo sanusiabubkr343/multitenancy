@@ -7,7 +7,8 @@ import json
 class Settings(BaseSettings):
     # Database
     MASTER_DATABASE_URL: str
-    TENANT_DB_TEMPLATE: str = "postgresql://postgres:password@localhost:5432/{tenant_name}_db"
+    TENANT_DB_URL_TEMPLATE: str = "postgresql://postgres:password@localhost:5432/{tenant_name}_db"
+    TENANT_DB_INTERNAL_URL_TEMPLATE: str = "postgresql://postgres:password@postgres:5432/{tenant_name}_db"
 
     # Security
     SECRET_KEY: str

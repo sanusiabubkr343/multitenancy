@@ -58,14 +58,25 @@ class TenantDatabaseManager:
 tenant_db_manager = TenantDatabaseManager()
 
 
-def get_tenant_db(request: Request, _header: str = Depends(header_scheme)):
+def get_tenant_db(request: Request):
     """
     Dependency to get tenant database session.
     This is used as a FastAPI dependency.
+    Requires X-Tenant-ID header to be set by TenantMiddleware.
     """
     tenant_id = getattr(request.state, "tenant_id", None)
+
+    # If middleware didn't set it, try to get it from header directly
     if not tenant_id:
-        raise HTTPException(status_code=400, detail="X-Tenant-ID header required")
+        tenant_id_header = request.headers.get("X-Tenant-ID")
+        if tenant_id_header:
+            try:
+                tenant_id = int(tenant_id_header)
+                request.state.tenant_id = tenant_id
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid tenant ID format")
+        else:
+            raise HTTPException(status_code=400, detail="X-Tenant-ID header required")
 
     # Convert tenant_id to int if it's a string
     if isinstance(tenant_id, str):

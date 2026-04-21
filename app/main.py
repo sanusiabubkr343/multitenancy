@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from app.middleware.tenant_middleware import TenantMiddleware
 from app.database.master_db import init_master_db, SessionLocal
-from app.routers import tenants, auth, migrations, tenant_data
+from app.routers import tenants, auth, migrations, tenant_data, tenant_auth, tenant_users
 from app.config import settings
 
 # Initialize FastAPI with Swagger docs configuration
@@ -78,6 +78,16 @@ app.include_router(
     tenant_data.router,
     prefix="/api/tenant",
     tags=["Tenant Data Operations"]
+)
+app.include_router(
+    tenant_auth.router,
+    prefix="/api/tenant/auth",
+    tags=["Tenant Authentication"]
+)
+app.include_router(
+    tenant_users.router,
+    prefix="/api/tenant/users",
+    tags=["Tenant User Management"]
 )
 
 
@@ -157,7 +167,9 @@ async def root():
             "auth": "/api/auth",
             "tenants": "/api/tenants",
             "migrations": "/api/migrations",
-            "tenant_data": "/api/tenant"
+            "tenant_data": "/api/tenant",
+            "tenant_auth": "/api/tenant/auth",
+            "tenant_users": "/api/tenant/users"
         }
     }
 

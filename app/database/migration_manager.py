@@ -17,20 +17,26 @@ class TenantMigrationManager:
 
     def create_tenant_database(self, tenant_name: str, db_url: str):
         """Create a new tenant database"""
+        from app.models.tenant_models import TenantBase
+
         # Extract database name from URL
         db_name = db_url.split("/")[-1]
         admin_url = db_url.rsplit("/", 1)[0] + "/postgres"
 
-        engine = create_engine(admin_url)
+        # Create database
+        engine = create_engine(admin_url, isolation_level="AUTOCOMMIT")
         with engine.connect() as conn:
-            conn.execute(text("commit"))
-            conn.execute(f"CREATE DATABASE {db_name}")
+            # Check if database exists
+            result = conn.execute(text(f"SELECT 1 FROM pg_database WHERE datname = '{db_name}'"))
+            exists = result.fetchone() is not None
 
-        # Initialize alembic for tenant
-        self.init_tenant_migrations(tenant_name, db_url)
+            if not exists:
+                conn.execute(text(f"CREATE DATABASE {db_name}"))
 
-        # Run initial migration
-        self.migrate_tenant(tenant_name, db_url, "head")
+        # Create tables in the new database using SQLAlchemy
+        tenant_engine = create_engine(db_url)
+        TenantBase.metadata.create_all(bind=tenant_engine)
+        tenant_engine.dispose()
 
     def init_tenant_migrations(self, tenant_name: str, db_url: str):
         """Initialize alembic for a tenant"""
@@ -38,69 +44,17 @@ class TenantMigrationManager:
         alembic_cfg.set_main_option("script_location", self.migrations_dir)
         alembic_cfg.set_main_option("sqlalchemy.url", db_url)
 
-        # Create versions directory if not exists
-        os.makedirs(self.migrations_dir, exist_ok=True)
-        os.makedirs(self.template_dir, exist_ok=True)
+        # Check if alembic is already initialized
+        alembic_ini_path = os.path.join(self.migrations_dir, "alembic.ini")
+        env_py_path = os.path.join(self.migrations_dir, "env.py")
 
-        # Generate alembic.ini for this tenant
-        tenant_ini = f"alembic_{tenant_name}.ini"
-        with open(tenant_ini, "w") as f:
-            f.write(f"""
-[alembic]
-script_location = {self.migrations_dir}
-prepend_sys_path = .
-version_path_separator = os
-sqlalchemy.url = {db_url}
+        # Only initialize if not already set up
+        if not os.path.exists(env_py_path):
+            # Create versions directory if not exists
+            os.makedirs(self.migrations_dir, exist_ok=True)
+            os.makedirs(self.template_dir, exist_ok=True)
 
-[post_write_hooks]
-hooks = black
-black.type = console_scripts
-black.entrypoint = black
-black.options = -l 88
-
-[loggers]
-keys = root,sqlalchemy,alembic
-
-[handlers]
-keys = console
-
-[formatters]
-keys = generic
-
-[logger_root]
-level = WARN
-handlers = console
-qualname =
-
-[logger_sqlalchemy]
-level = WARN
-handlers =
-qualname = sqlalchemy.engine
-
-[logger_alembic]
-level = INFO
-handlers =
-qualname = alembic
-
-[handler_console]
-class = StreamHandler
-args = (sys.stderr,)
-level = NOTSET
-formatter = generic
-
-[formatter_generic]
-format = %(levelname)-5.5s [%(name)s] %(message)s
-datefmt = %H:%M:%S
-""")
-
-        command.init(alembic_cfg, directory=self.migrations_dir)
-
-        # Generate initial migration
-        command.revision(alembic_cfg, autogenerate=True, message="initial_migration")
-        command.upgrade(alembic_cfg, "head")
-
-        # Clean up
-        os.remove(tenant_ini)
+            command.init(alembic_cfg, directory=self.migrations_dir)
 
     def create_migration(self, message: str) -> str:
         """Create a new migration revision for tenants"""

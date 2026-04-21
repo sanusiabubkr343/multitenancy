@@ -1,4 +1,3 @@
-# .gitignore
 # Environment files
 .env
 .env.local
@@ -38,12 +37,18 @@ wheels/
 .pytest_cache/
 .coverage
 htmlcov/
+*.pyc
+*.pyo
 
-# Database migrations
+# Database migrations - ignore auto-generated migration files
 migrations/master/versions/*.py
 !migrations/master/versions/__init__.py
 migrations/tenant/versions/*.py
 !migrations/tenant/versions/__init__.py
+
+# Alembic temp files
+alembic_*.ini
+!alembic_tenant.ini
 
 # IDE
 .vscode/
@@ -61,3 +66,33 @@ logs/
 *.backup
 *.sql
 backups/
+
+# Docker
+docker-compose.override.yml
+
+# OS
+Thumbs.db
+.Spotlight-V100
+.Trashes
+
+# Testing
+.tox/
+.nox/
+.hypothesis/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# pytype
+.pytype/
+
+# Cython
+cython_debug/

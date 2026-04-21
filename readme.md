@@ -9,6 +9,7 @@ A robust FastAPI-based multi-tenant SaaS architecture utilizing a **database-per
 - **Migration System**: Integrated Alembic-based migration system that allows applying schema changes to all tenants or specific ones.
 - **Security**: JWT-based authentication with support for Super Admins and regular users.
 - **Middleware-driven Routing**: Automatically identifies the tenant based on the `X-Tenant-ID` header.
+- **Adminer**: Database management tool included in the Docker setup for easy database inspection.
 - **Consolidated Schemas**: All Pydantic models are organized in the `app/schemas` directory following best practices.
 
 ## 🏗️ Architecture
@@ -56,7 +57,9 @@ A robust FastAPI-based multi-tenant SaaS architecture utilizing a **database-per
    ```bash
    pip install -r requirements.txt
    ```
-3. Set up your environment variables in `.env` (or use defaults in `app/config.py`).
+3. Set up your environment variables in `.env`. The project uses two PostgreSQL instances:
+   - **Master DB**: Default port `5432`.
+   - **Tenant DB**: Default port `5433` (external) or `5432` (internal Docker).
 4. Run the application:
    ```bash
    # Option 1: Direct run
@@ -65,6 +68,12 @@ A robust FastAPI-based multi-tenant SaaS architecture utilizing a **database-per
    # Option 2: Run via main script
    python app/main.py
    ```
+
+### Database Management (Adminer)
+
+If running via Docker, you can access Adminer at `http://localhost:8080` to manage your databases:
+- **Master DB**: Server: `postgres-master`, User: `postgres`, Password: `password`, Database: `master_db`
+- **Tenant DBs**: Server: `postgres-tenant`, User: `postgres`, Password: `password`
 
 ## 🔌 API Usage
 

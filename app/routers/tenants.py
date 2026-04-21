@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Any
+from app.config import settings
 from app.database.master_db import SessionLocal
 from app.models.master_models import Tenant, User
 from app.schemas.tenant_schemas import TenantCreate, TenantResponse
@@ -36,7 +37,10 @@ async def create_tenant(
         raise HTTPException(status_code=400, detail="Tenant already exists")
 
     # Create database URL
-    db_url = f"postgresql://postgres:password@localhost:5432/{tenant_data.name}_db"
+    # Use internal URL template if running in Docker, otherwise use localhost template
+    is_docker = settings.MASTER_DATABASE_URL.find("postgres:5432") != -1
+    template = settings.TENANT_DB_INTERNAL_URL_TEMPLATE if is_docker else settings.TENANT_DB_URL_TEMPLATE
+    db_url = template.format(tenant_name=tenant_data.name)
 
     # Create tenant record
     tenant = Tenant(
